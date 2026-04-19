@@ -1,7 +1,6 @@
 # Engineering Requirements Intelligence Agent
 ### Multi-step LangGraph agent for automotive requirements traceability
 
-Built as a portfolio project aligned with Valeo AI4all Engineering Disciplines role.
 
 ---
 
@@ -89,7 +88,7 @@ python -m src.main
 
 ## Sample Output
 
-The agent processes `sample_requirements.txt` (Valeo lighting system requirements) and outputs:
+The agent processes `sample_requirements.txt` (sample lighting system requirements) and outputs:
 
 - **Inconsistency detected**: REQ-SYS-002 (operates -40°C to 125°C) vs REQ-SW-004 (operates 8°C to 120°C) — temperature range conflict
 - **Gaps detected**: Missing test requirements for several hardware requirements
