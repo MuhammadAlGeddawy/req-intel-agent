@@ -124,6 +124,6 @@ Full report saved to `requirements_report.json`
 ## Tech Stack
 
 - **LangGraph** — agent orchestration and state management
-- **Anthropic Claude** — LLM reasoning at each node
+- **Qwen** — LLM reasoning at each node
 - **Python / Pydantic** — structured output validation
 - **JSON** — audit-trail and report format
