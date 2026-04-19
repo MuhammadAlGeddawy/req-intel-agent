@@ -1,0 +1,278 @@
+{
+  "metadata": {
+    "document": "LGT-REQ-001 \u2014 Valeo Lighting System Requirements",
+    "generated_at": "2026-04-19T12:19:40.996359",
+    "model_used": "qwen/qwen-2.5-7b-instruct",
+    "agent_version": "1.0.0",
+    "human_review_required": true
+  },
+  "summary": {
+    "total_requirements": 17,
+    "by_domain": {
+      "SYSTEM": 4,
+      "HARDWARE": 4,
+      "SOFTWARE": 4,
+      "SAFETY": 3,
+      "TEST": 2
+    },
+    "safety_relevant": 6,
+    "inconsistencies_found": 0,
+    "gaps_found": 5,
+    "high_severity_issues": 1
+  },
+  "requirements": [
+    {
+      "id": "REQ-SYS-001",
+      "text": "The adaptive headlight system shall adjust beam direction within 50ms of steering input detection.",
+      "domain": "SYSTEM",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-SYS-002",
+      "text": "The lighting control unit shall remain operational between -40\u00b0C and 125\u00b0C ambient temperature.",
+      "domain": "SYSTEM",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-SYS-003",
+      "text": "The system shall comply with ECE Regulation 123 for adaptive front lighting systems.",
+      "domain": "SYSTEM",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-SYS-004",
+      "text": "The headlight system shall achieve ASIL-B functional safety classification.",
+      "domain": "SYSTEM",
+      "safety_relevant": true,
+      "safety_reason": "ASIL classification indicates safety relevance."
+    },
+    {
+      "id": "REQ-HW-001",
+      "text": "The LED driver circuit shall supply a minimum of 1000 lumens per headlight unit.",
+      "domain": "HARDWARE",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-HW-002",
+      "text": "The actuator motor shall achieve beam adjustment with a positional accuracy of \u00b10.1 degrees.",
+      "domain": "HARDWARE",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-HW-003",
+      "text": "The hardware components shall operate within a voltage range of 9V to 16V DC.",
+      "domain": "HARDWARE",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-HW-004",
+      "text": "The temperature sensor shall have a measurement accuracy of \u00b12\u00b0C across the full operating range.",
+      "domain": "HARDWARE",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-SW-001",
+      "text": "The beam control algorithm shall process steering angle sensor data at a minimum frequency of 100Hz.",
+      "domain": "SOFTWARE",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-SW-002",
+      "text": "The software shall implement a watchdog timer with a timeout period of 10ms.",
+      "domain": "SOFTWARE",
+      "safety_relevant": true,
+      "safety_reason": "Watchdog timer ensures fail-safe behavior."
+    },
+    {
+      "id": "REQ-SW-003",
+      "text": "The firmware shall log all fault events to non-volatile memory within 5ms of detection.",
+      "domain": "SOFTWARE",
+      "safety_relevant": true,
+      "safety_reason": "Fault logging supports fault detection."
+    },
+    {
+      "id": "REQ-SW-004",
+      "text": "The control software shall operate within 8\u00b0C to 120\u00b0C \u2014 NOTE: inconsistent with REQ-SYS-002.",
+      "domain": "SOFTWARE",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-SAF-001",
+      "text": "In case of actuator failure, the system shall default to a fixed straight-ahead beam position within 100ms.",
+      "domain": "SAFETY",
+      "safety_relevant": true,
+      "safety_reason": "Fail-safe behavior is critical for safety."
+    },
+    {
+      "id": "REQ-SAF-002",
+      "text": "The system shall detect LED failure and activate a driver warning within 2 seconds.",
+      "domain": "SAFETY",
+      "safety_relevant": true,
+      "safety_reason": "Fault detection and human safety impact are relevant."
+    },
+    {
+      "id": "REQ-SAF-003",
+      "text": "All safety-relevant software components shall have 100% MC/DC coverage in testing.",
+      "domain": "SAFETY",
+      "safety_relevant": true,
+      "safety_reason": "Ensures comprehensive fault coverage and safety."
+    },
+    {
+      "id": "REQ-TST-001",
+      "text": "The beam adjustment latency shall be verified under simulated steering inputs at -20\u00b0C, 25\u00b0C, and 85\u00b0C.",
+      "domain": "TEST",
+      "safety_relevant": false,
+      "safety_reason": null
+    },
+    {
+      "id": "REQ-TST-002",
+      "text": "Voltage tolerance testing shall be performed at 9V, 12V, and 16V input levels.",
+      "domain": "TEST",
+      "safety_relevant": false,
+      "safety_reason": null
+    }
+  ],
+  "safety_assessments": {
+    "disclaimer": "SUGGESTIONS ONLY \u2014 All ASIL assignments require human expert review per ISO 26262",
+    "assessments": [
+      {
+        "id": "REQ-SYS-004",
+        "suggested_asil": "B",
+        "severity": "S2",
+        "exposure": "E2",
+        "controllability": "C2",
+        "rationale": "Headlights can cause glare and reduce visibility, leading to accidents.",
+        "human_review_required": true
+      },
+      {
+        "id": "REQ-SW-002",
+        "suggested_asil": "A",
+        "severity": "S1",
+        "exposure": "E1",
+        "controllability": "C3",
+        "rationale": "Watchdog timer failure could lead to system hang, affecting overall safety.",
+        "human_review_required": true
+      },
+      {
+        "id": "REQ-SW-003",
+        "suggested_asil": "A",
+        "severity": "S1",
+        "exposure": "E1",
+        "controllability": "C3",
+        "rationale": "Failure to log faults could prevent timely detection and mitigation.",
+        "human_review_required": true
+      },
+      {
+        "id": "REQ-SAF-001",
+        "suggested_asil": "B",
+        "severity": "S2",
+        "exposure": "E3",
+        "controllability": "C2",
+        "rationale": "Actuator failure can lead to reduced visibility, increasing accident risk.",
+        "human_review_required": true
+      },
+      {
+        "id": "REQ-SAF-002",
+        "suggested_asil": "A",
+        "severity": "S1",
+        "exposure": "E2",
+        "controllability": "C2",
+        "rationale": "LED failure can reduce visibility and increase driver workload.",
+        "human_review_required": true
+      },
+      {
+        "id": "REQ-SAF-003",
+        "suggested_asil": "A",
+        "severity": "S1",
+        "exposure": "E1",
+        "controllability": "C3",
+        "rationale": "Incomplete test coverage can lead to undetected faults.",
+        "human_review_required": true
+      }
+    ]
+  },
+  "inconsistencies": [],
+  "traceability_gaps": [
+    {
+      "gap_type": "missing_sw",
+      "affected_req_id": "REQ-HW-002",
+      "description": "No corresponding software requirement for the actuator motor's positional accuracy.",
+      "priority": "HIGH",
+      "suggested_action": "Create a software requirement such as 'The control software shall ensure that the actuator motor achieves a beam adjustment with a positional accuracy of \u00b10.1 degrees.'"
+    },
+    {
+      "gap_type": "missing_test",
+      "affected_req_id": "REQ-SYS-004",
+      "description": "No corresponding test requirement for the software's temperature operating range.",
+      "priority": "MEDIUM",
+      "suggested_action": "Create a test requirement such as 'The control software shall be tested for operation within the voltage range of 8V to 120V DC.'"
+    },
+    {
+      "gap_type": "missing_acceptance_criterion",
+      "affected_req_id": "REQ-SAF-001",
+      "description": "No acceptance criterion specified for the time taken to default to a fixed straight-ahead beam position in case of actuator failure.",
+      "priority": "LOW",
+      "suggested_action": "Add an acceptance criterion such as 'The system shall default to a fixed straight-ahead beam position within 100ms of actuator failure detection.'"
+    },
+    {
+      "gap_type": "missing_acceptance_criterion",
+      "affected_req_id": "REQ-SAF-002",
+      "description": "No acceptance criterion specified for the time taken to detect LED failure and activate a driver warning.",
+      "priority": "LOW",
+      "suggested_action": "Add an acceptance criterion such as 'The system shall detect LED failure and activate a driver warning within 2 seconds of failure.'"
+    },
+    {
+      "gap_type": "missing_acceptance_criterion",
+      "affected_req_id": "REQ-SAF-003",
+      "description": "No acceptance criterion specified for the 100% MC/DC coverage in testing of safety-relevant software components.",
+      "priority": "LOW",
+      "suggested_action": "Add an acceptance criterion such as 'All safety-relevant software components shall have 100% MC/DC coverage in their respective test scenarios.'"
+    }
+  ],
+  "audit_log": [
+    {
+      "timestamp": "2026-04-19T12:18:07.659699",
+      "node": "extract_requirements_regex",
+      "input": "Document: LGT-REQ-001 \u2014 Valeo Lighting System Requirements",
+      "output": "Extracted 17 requirements via Regex",
+      "model": "qwen/qwen-2.5-7b-instruct"
+    },
+    {
+      "timestamp": "2026-04-19T12:18:44.311304",
+      "node": "classify_requirements",
+      "input": "17 requirements",
+      "output": "6 flagged as safety-relevant",
+      "model": "qwen/qwen-2.5-7b-instruct"
+    },
+    {
+      "timestamp": "2026-04-19T12:18:51.564589",
+      "node": "assess_safety_levels",
+      "input": "6 safety requirements",
+      "output": "6 ASIL suggestions (all pending human review)",
+      "model": "qwen/qwen-2.5-7b-instruct"
+    },
+    {
+      "timestamp": "2026-04-19T12:19:27.642669",
+      "node": "detect_inconsistencies",
+      "input": "17 requirements",
+      "output": "0 conflicts found",
+      "model": "qwen/qwen-2.5-7b-instruct"
+    },
+    {
+      "timestamp": "2026-04-19T12:19:40.991851",
+      "node": "detect_gaps",
+      "input": "17 requirements",
+      "output": "5 gaps found",
+      "model": "qwen/qwen-2.5-7b-instruct"
+    }
+  ]
+}

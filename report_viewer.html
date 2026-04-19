@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requirements Intelligence Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: #e8e4dc;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --blue: #1e3a5f;
+    --teal: #009999;
+    --teal-light: #e0f5f5;
+    --red: #c00000;
+    --red-light: #fdeaea;
+    --amber: #c55a11;
+    --amber-light: #fdf0e6;
+    --green: #1a7a4a;
+    --green-light: #e6f5ed;
+    --gray-light: #f2f0eb;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--blue);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-title {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .topbar-meta {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--surface);
+    margin-bottom: 2rem;
+  }
+  .upload-zone:hover { border-color: var(--teal); background: var(--teal-light); }
+  .upload-zone.drag-over { border-color: var(--teal); background: var(--teal-light); }
+  .upload-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .upload-label { font-size: 15px; color: var(--text); margin-bottom: 0.5rem; font-weight: 600; }
+  .upload-sub { font-size: 13px; color: var(--muted); font-family: 'Courier New', monospace; }
+  #file-input { display: none; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .section-title {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .section-count {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--teal);
+  }
+
+  /* ── METRIC CARDS ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--teal);
+  }
+  .metric-card.danger::before { background: var(--red); }
+  .metric-card.warning::before { background: var(--amber); }
+  .metric-card.success::before { background: var(--green); }
+  .metric-label { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+  .metric-value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+  .metric-card.danger .metric-value { color: var(--red); }
+  .metric-card.warning .metric-value { color: var(--amber); }
+  .metric-card.success .metric-value { color: var(--green); }
+
+  /* ── CHARTS ROW ── */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 2rem; }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+  .chart-title { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; }
+  .chart-wrap { position: relative; height: 200px; }
+
+  /* ── ISSUE CARDS ── */
+  .issue-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--border);
+    transition: transform 0.15s;
+  }
+  .issue-card:hover { transform: translateX(2px); }
+  .issue-card.high { border-left-color: var(--red); }
+  .issue-card.medium { border-left-color: var(--amber); }
+  .issue-card.low { border-left-color: var(--green); }
+
+  .issue-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .req-id {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: var(--gray-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .connector { font-size: 11px; color: var(--muted); }
+  .severity-badge {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-left: auto;
+  }
+  .severity-badge.high { background: var(--red-light); color: var(--red); }
+  .severity-badge.medium { background: var(--amber-light); color: var(--amber); }
+  .severity-badge.low { background: var(--green-light); color: var(--green); }
+
+  .issue-desc { font-size: 14px; color: var(--text); line-height: 1.5; margin-bottom: 0.5rem; }
+  .issue-action { font-size: 13px; color: var(--teal); font-style: italic; }
+
+  /* ── REQUIREMENTS TABLE ── */
+  .req-table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--blue); }
+  thead th { color: white; padding: 10px 12px; text-align: left; font-family: 'Courier New', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:hover { background: var(--gray-light); }
+  tbody td { padding: 9px 12px; }
+  .req-id-cell { font-family: 'Courier New', monospace; font-size: 12px; color: var(--blue); font-weight: 600; white-space: nowrap; }
+  .domain-pill {
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .domain-SYSTEM  { background: #e8edf5; color: var(--blue); }
+  .domain-HARDWARE { background: #fdf0e6; color: var(--amber); }
+  .domain-SOFTWARE { background: #e6f5ed; color: var(--green); }
+  .domain-SAFETY  { background: var(--red-light); color: var(--red); }
+  .domain-TEST    { background: var(--teal-light); color: var(--teal); }
+  .safety-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+  .safety-dot.no { background: var(--border); }
+
+  /* ── ASIL CARDS ── */
+  .asil-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .asil-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+  }
+  .asil-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .asil-badge {
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    width: 48px; height: 48px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--red-light); color: var(--red);
+    flex-shrink: 0;
+  }
+  .asil-badge.QM { background: var(--green-light); color: var(--green); }
+  .asil-badge.A  { background: #fff9e6; color: #8a6800; }
+  .asil-badge.B  { background: var(--amber-light); color: var(--amber); }
+  .asil-badge.C  { background: #fde6e6; color: #9a1010; }
+  .asil-badge.D  { background: var(--red-light); color: var(--red); }
+  .asil-meta { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; }
+  .asil-req-id { font-size: 14px; font-weight: 600; color: var(--blue); }
+  .asil-factors { display: flex; gap: 8px; margin-top: 0.5rem; }
+  .asil-factor {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    background: var(--gray-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--muted);
+  }
+  .asil-rationale { font-size: 13px; color: var(--muted); margin-top: 0.75rem; font-style: italic; line-height: 1.5; }
+  .asil-warning {
+    font-size: 11px;
+    color: var(--amber);
+    font-family: 'Courier New', monospace;
+    margin-top: 0.5rem;
+    padding: 4px 8px;
+    background: var(--amber-light);
+    border-radius: 4px;
+  }
+
+  /* ── AUDIT LOG ── */
+  .audit-row {
+    display: flex;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    align-items: baseline;
+  }
+  .audit-time { font-family: 'Courier New', monospace; font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+  .audit-node { font-family: 'Courier New', monospace; font-size: 11px; color: var(--teal); white-space: nowrap; flex-shrink: 0; }
+  .audit-text { color: var(--text); }
+
+  /* ── DOC INFO ── */
+  .doc-banner {
+    background: var(--blue);
+    color: white;
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .doc-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .doc-field { font-family: 'Courier New', monospace; font-size: 11px; color: rgba(255,255,255,0.6); }
+  .doc-field span { color: rgba(255,255,255,0.9); }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 15px; }
+
+  /* ── ALERT BANNER ── */
+  .alert-banner {
+    background: var(--amber-light);
+    border: 1px solid #f5c070;
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: var(--amber);
+    margin-bottom: 1.5rem;
+    font-family: 'Courier New', monospace;
+  }
+
+  @media (max-width: 640px) {
+    .charts-row { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">Requirements Intelligence Report Viewer</div>
+  <div class="topbar-meta" id="topbar-meta">No report loaded</div>
+</div>
+
+<div class="container">
+
+  <!-- Upload Zone -->
+  <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="upload-icon">&#128196;</div>
+    <div class="upload-label">Drop your requirements_report.json here</div>
+    <div class="upload-sub">or click to browse &mdash; output from the LangGraph agent</div>
+    <input type="file" id="file-input" accept=".json">
+  </div>
+
+  <!-- Report Content (hidden until loaded) -->
+  <div id="report-content" style="display:none;">
+
+    <!-- Doc Banner -->
+    <div class="doc-banner" id="doc-banner"></div>
+
+    <!-- Alert -->
+    <div class="alert-banner">
+      &#9888; ASIL assessments are AI suggestions only &mdash; all safety classifications require human expert review per ISO 26262
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="section-header">
+      <span class="section-title">Summary</span>
+    </div>
+    <div class="metrics-grid" id="metrics-grid"></div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Requirements by domain</div>
+        <div class="chart-wrap">
+          <canvas id="domainChart" role="img" aria-label="Donut chart of requirements by engineering domain"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Issues by severity</div>
+        <div class="chart-wrap">
+          <canvas id="severityChart" role="img" aria-label="Bar chart of issues by severity level"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inconsistencies -->
+    <div class="section-header">
+      <span class="section-title">Inconsistencies</span>
+      <span class="section-count" id="inc-count"></span>
+    </div>
+    <div id="inconsistencies-list"></div>
+
+    <!-- Traceability Gaps -->
+    <div class="section-header">
+      <span class="section-title">Traceability gaps</span>
+      <span class="section-count" id="gap-count"></span>
+    </div>
+    <div id="gaps-list"></div>
+
+    <!-- ASIL Assessments -->
+    <div class="section-header">
+      <span class="section-title">Safety assessments (ASIL suggestions)</span>
+      <span class="section-count" id="asil-count"></span>
+    </div>
+    <div class="asil-grid" id="asil-grid"></div>
+
+    <!-- Requirements Table -->
+    <div class="section-header">
+      <span class="section-title">All requirements</span>
+      <span class="section-count" id="req-count"></span>
+    </div>
+    <div class="req-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Domain</th>
+            <th>Safety</th>
+            <th>Requirement text</th>
+          </tr>
+        </thead>
+        <tbody id="req-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Audit Log -->
+    <div class="section-header" style="margin-top: 2.5rem;">
+      <span class="section-title">Audit log</span>
+      <span class="section-count" id="audit-count"></span>
+    </div>
+    <div id="audit-log"></div>
+
+  </div>
+
+  <div class="empty" id="empty-state">
+    Load a <code>requirements_report.json</code> file to visualize the agent output
+  </div>
+
+</div>
+
+<script>
+let domainChartInst = null;
+let severityChartInst = null;
+
+// ── DRAG & DROP ──────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) readFile(e.target.files[0]); });
+
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      renderReport(data);
+    } catch {
+      alert('Could not parse JSON file. Make sure it is a valid requirements_report.json.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function renderReport(d) {
+  document.getElementById('report-content').style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('drop-zone').style.display = 'none';
+
+  const meta = d.metadata || {};
+  const summary = d.summary || {};
+  const requirements = d.requirements || [];
+  const inconsistencies = d.inconsistencies || [];
+  const gaps = d.traceability_gaps || [];
+  const asilList = (d.safety_assessments || {}).assessments || [];
+  const auditLog = d.audit_log || [];
+
+  // Topbar
+  const ts = meta.generated_at ? new Date(meta.generated_at).toLocaleString() : 'unknown';
+  document.getElementById('topbar-meta').textContent = ts;
+
+  // Doc banner
+  document.getElementById('doc-banner').innerHTML = `
+    <div>
+      <div class="doc-name">${meta.document || 'Requirements Report'}</div>
+      <div class="doc-field">Model: <span>${meta.model_used || 'N/A'}</span></div>
+    </div>
+    <div class="doc-field">Generated: <span>${ts}</span></div>
+    <div class="doc-field">Agent version: <span>${meta.agent_version || '1.0.0'}</span></div>
+  `;
+
+  // Metrics
+  const highCount = (inconsistencies.filter(i => i.severity === 'HIGH').length) + (gaps.filter(g => g.priority === 'HIGH').length);
+  const metricsData = [
+    { label: 'Total requirements', value: summary.total_requirements || requirements.length, cls: '' },
+    { label: 'Safety-relevant', value: summary.safety_relevant || 0, cls: 'danger' },
+    { label: 'Inconsistencies', value: inconsistencies.length, cls: inconsistencies.length > 0 ? 'warning' : 'success' },
+    { label: 'Gaps found', value: gaps.length, cls: gaps.length > 0 ? 'warning' : 'success' },
+    { label: 'High severity', value: highCount, cls: highCount > 0 ? 'danger' : 'success' },
+    { label: 'Domains', value: Object.keys(summary.by_domain || {}).length, cls: '' },
+  ];
+  document.getElementById('metrics-grid').innerHTML = metricsData.map(m => `
+    <div class="metric-card ${m.cls}">
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-value">${m.value}</div>
+    </div>`).join('');
+
+  // Domain chart
+  const domainData = summary.by_domain || {};
+  const domainColors = { SYSTEM: '#1e3a5f', HARDWARE: '#c55a11', SOFTWARE: '#1a7a4a', SAFETY: '#c00000', TEST: '#009999' };
+  if (domainChartInst) domainChartInst.destroy();
+  domainChartInst = new Chart(document.getElementById('domainChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(domainData),
+      datasets: [{
+        data: Object.values(domainData),
+        backgroundColor: Object.keys(domainData).map(k => domainColors[k] || '#888'),
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { family: 'Courier New', size: 11 }, padding: 12, boxWidth: 12 } }
+      }
+    }
+  });
+
+  // Severity chart
+  const highI = inconsistencies.filter(i => i.severity === 'HIGH').length;
+  const midI  = inconsistencies.filter(i => i.severity === 'MEDIUM').length;
+  const lowI  = inconsistencies.filter(i => i.severity === 'LOW').length;
+  const highG = gaps.filter(g => g.priority === 'HIGH').length;
+  const midG  = gaps.filter(g => g.priority === 'MEDIUM').length;
+  const lowG  = gaps.filter(g => g.priority === 'LOW').length;
+
+  if (severityChartInst) severityChartInst.destroy();
+  severityChartInst = new Chart(document.getElementById('severityChart'), {
+    type: 'bar',
+    data: {
+      labels: ['HIGH', 'MEDIUM', 'LOW'],
+      datasets: [
+        { label: 'Inconsistencies', data: [highI, midI, lowI], backgroundColor: '#c00000', borderRadius: 4 },
+        { label: 'Gaps', data: [highG, midG, lowG], backgroundColor: '#c55a11', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { font: { family: 'Courier New', size: 11 }, boxWidth: 12 } } },
+      scales: {
+        x: { stacked: false, ticks: { font: { family: 'Courier New', size: 11 } } },
+        y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Courier New', size: 11 } } }
+      }
+    }
+  });
+
+  // Inconsistencies
+  document.getElementById('inc-count').textContent = `${inconsistencies.length} found`;
+  document.getElementById('inconsistencies-list').innerHTML = inconsistencies.length === 0
+    ? '<p style="color:var(--muted);font-size:14px;padding:1rem 0;">No inconsistencies detected</p>'
+    : inconsistencies.map(inc => {
+        const sev = (inc.severity || 'LOW').toLowerCase();
+        return `<div class="issue-card ${sev}">
+          <div class="issue-header">
+            <span class="req-id">${inc.req_id_1 || '?'}</span>
+            <span class="connector">&#8596;</span>
+            <span class="req-id">${inc.req_id_2 || '?'}</span>
+            <span class="severity-badge ${sev}">${sev}</span>
+          </div>
+          <div class="issue-desc">${inc.description || ''}</div>
+          <div class="issue-action">&#8594; ${inc.suggested_action || ''}</div>
+        </div>`;
+      }).join('');
+
+  // Gaps
+  document.getElementById('gap-count').textContent = `${gaps.length} found`;
+  document.getElementById('gaps-list').innerHTML = gaps.length === 0
+    ? '<p style="color:var(--muted);font-size:14px;padding:1rem 0;">No traceability gaps detected</p>'
+    : gaps.map(gap => {
+        const pri = (gap.priority || 'LOW').toLowerCase();
+        return `<div class="issue-card ${pri}">
+          <div class="issue-header">
+            <span class="req-id">${gap.affected_req_id || '?'}</span>
+            <span class="connector" style="font-size:12px;background:var(--gray-light);padding:2px 8px;border-radius:4px;font-family:monospace;">
+              ${(gap.gap_type || '').replace(/_/g, ' ')}
+            </span>
+            <span class="severity-badge ${pri}">${pri}</span>
+          </div>
+          <div class="issue-desc">${gap.description || ''}</div>
+          <div class="issue-action">&#8594; ${gap.suggested_action || ''}</div>
+        </div>`;
+      }).join('');
+
+  // ASIL
+  document.getElementById('asil-count').textContent = `${asilList.length} assessments`;
+  document.getElementById('asil-grid').innerHTML = asilList.length === 0
+    ? '<p style="color:var(--muted);font-size:14px;padding:1rem 0;">No safety assessments</p>'
+    : asilList.map(a => {
+        const level = a.suggested_asil || '?';
+        return `<div class="asil-card">
+          <div class="asil-header">
+            <div class="asil-badge ${level}">ASIL-${level}</div>
+            <div>
+              <div class="asil-req-id">${a.id || '?'}</div>
+              <div class="asil-meta">Suggested level</div>
+            </div>
+          </div>
+          <div class="asil-factors">
+            <span class="asil-factor">S: ${a.severity || '?'}</span>
+            <span class="asil-factor">E: ${a.exposure || '?'}</span>
+            <span class="asil-factor">C: ${a.controllability || '?'}</span>
+          </div>
+          <div class="asil-rationale">${a.rationale || ''}</div>
+          <div class="asil-warning">&#9888; Human review required</div>
+        </div>`;
+      }).join('');
+
+  // Requirements table
+  document.getElementById('req-count').textContent = `${requirements.length} total`;
+  document.getElementById('req-tbody').innerHTML = requirements.map(r => {
+    const domain = r.domain || 'UNKNOWN';
+    const isSafe = r.safety_relevant;
+    return `<tr>
+      <td class="req-id-cell">${r.id || '?'}</td>
+      <td><span class="domain-pill domain-${domain}">${domain}</span></td>
+      <td style="text-align:center;">
+        <span class="safety-dot ${isSafe ? '' : 'no'}" title="${isSafe ? 'Safety-relevant' : 'Not safety-relevant'}"></span>
+      </td>
+      <td style="font-size:13px;line-height:1.4;">${r.text || ''}</td>
+    </tr>`;
+  }).join('');
+
+  // Audit log
+  document.getElementById('audit-count').textContent = `${auditLog.length} calls`;
+  document.getElementById('audit-log').innerHTML = auditLog.map(entry => {
+    const t = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : '';
+    return `<div class="audit-row">
+      <span class="audit-time">${t}</span>
+      <span class="audit-node">${entry.node || ''}</span>
+      <span class="audit-text">${entry.output || ''}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── DEMO MODE: load sample data if query param ?demo=1 ───────────────────────
+const SAMPLE = {
+  "metadata": { "document": "LGT-REQ-001 — Valeo Lighting System Requirements", "generated_at": new Date().toISOString(), "model_used": "qwen/qwen-2.5-7b-instruct", "agent_version": "1.0.0", "human_review_required": true },
+  "summary": { "total_requirements": 19, "by_domain": { "SYSTEM": 4, "HARDWARE": 4, "SOFTWARE": 4, "SAFETY": 3, "TEST": 2 }, "safety_relevant": 7, "inconsistencies_found": 1, "gaps_found": 3, "high_severity_issues": 2 },
+  "requirements": [
+    { "id": "REQ-SYS-001", "text": "The adaptive headlight system shall adjust beam direction within 50ms of steering input detection.", "domain": "SYSTEM", "safety_relevant": false },
+    { "id": "REQ-SYS-002", "text": "The lighting control unit shall remain operational between -40°C and 125°C ambient temperature.", "domain": "SYSTEM", "safety_relevant": true },
+    { "id": "REQ-SYS-003", "text": "The system shall comply with ECE Regulation 123 for adaptive front lighting systems.", "domain": "SYSTEM", "safety_relevant": true },
+    { "id": "REQ-SYS-004", "text": "The headlight system shall achieve ASIL-B functional safety classification.", "domain": "SYSTEM", "safety_relevant": true },
+    { "id": "REQ-HW-001", "text": "The LED driver circuit shall supply a minimum of 1000 lumens per headlight unit.", "domain": "HARDWARE", "safety_relevant": false },
+    { "id": "REQ-HW-002", "text": "The actuator motor shall achieve beam adjustment with a positional accuracy of ±0.1 degrees.", "domain": "HARDWARE", "safety_relevant": false },
+    { "id": "REQ-HW-003", "text": "The hardware components shall operate within a voltage range of 9V to 16V DC.", "domain": "HARDWARE", "safety_relevant": false },
+    { "id": "REQ-HW-004", "text": "The temperature sensor shall have a measurement accuracy of ±2°C across the full operating range.", "domain": "HARDWARE", "safety_relevant": false },
+    { "id": "REQ-SW-001", "text": "The beam control algorithm shall process steering angle sensor data at a minimum frequency of 100Hz.", "domain": "SOFTWARE", "safety_relevant": false },
+    { "id": "REQ-SW-002", "text": "The software shall implement a watchdog timer with a timeout period of 10ms.", "domain": "SOFTWARE", "safety_relevant": true },
+    { "id": "REQ-SW-003", "text": "The firmware shall log all fault events to non-volatile memory within 5ms of detection.", "domain": "SOFTWARE", "safety_relevant": true },
+    { "id": "REQ-SW-004", "text": "The control software shall operate within 8°C to 120°C — NOTE: inconsistent with REQ-SYS-002.", "domain": "SOFTWARE", "safety_relevant": false },
+    { "id": "REQ-SAF-001", "text": "In case of actuator failure, the system shall default to a fixed straight-ahead beam position within 100ms.", "domain": "SAFETY", "safety_relevant": true },
+    { "id": "REQ-SAF-002", "text": "The system shall detect LED failure and activate a driver warning within 2 seconds.", "domain": "SAFETY", "safety_relevant": true },
+    { "id": "REQ-SAF-003", "text": "All safety-relevant software components shall have 100% MC/DC coverage in testing.", "domain": "SAFETY", "safety_relevant": true },
+    { "id": "REQ-TST-001", "text": "The beam adjustment latency shall be verified under simulated steering inputs at -20°C, 25°C, and 85°C.", "domain": "TEST", "safety_relevant": false },
+    { "id": "REQ-TST-002", "text": "Voltage tolerance testing shall be performed at 9V, 12V, and 16V input levels.", "domain": "TEST", "safety_relevant": false }
+  ],
+  "inconsistencies": [
+    { "req_id_1": "REQ-SYS-002", "req_id_2": "REQ-SW-004", "type": "conflicting_values", "severity": "HIGH", "description": "REQ-SYS-002 specifies operation from -40°C to 125°C, but REQ-SW-004 specifies software operation only from 8°C to 120°C — a 48°C cold-end gap and 5°C hot-end gap that leaves the system unprotected at temperature extremes.", "suggested_action": "Align REQ-SW-004 to match the system-level temperature range in REQ-SYS-002, or document a justified exception with rationale." }
+  ],
+  "traceability_gaps": [
+    { "gap_type": "missing_test", "affected_req_id": "REQ-HW-002", "priority": "HIGH", "description": "Actuator positional accuracy (±0.1 degrees) has no corresponding test requirement to verify this specification.", "suggested_action": "Create REQ-TST-003 to verify actuator positional accuracy under defined test conditions." },
+    { "gap_type": "missing_test", "affected_req_id": "REQ-SAF-001", "priority": "HIGH", "description": "Fail-safe behavior on actuator failure has no test requirement.", "suggested_action": "Create REQ-TST-004 to verify fail-safe beam position within 100ms under simulated actuator failure." },
+    { "gap_type": "missing_acceptance_criterion", "affected_req_id": "REQ-SYS-003", "priority": "MEDIUM", "description": "ECE Regulation 123 compliance is stated but no acceptance criteria or verification method is specified.", "suggested_action": "Add specific ECE 123 test conditions and pass/fail criteria to REQ-SYS-003 or a linked test requirement." }
+  ],
+  "safety_assessments": {
+    "disclaimer": "SUGGESTIONS ONLY — All ASIL assignments require human expert review per ISO 26262",
+    "assessments": [
+      { "id": "REQ-SAF-001", "suggested_asil": "B", "severity": "S2", "exposure": "E3", "controllability": "C2", "rationale": "Actuator failure leading to fixed beam position poses moderate injury risk during night driving. Exposure is frequent (everyday driving). Driver can typically compensate by slowing down.", "human_review_required": true },
+      { "id": "REQ-SAF-002", "suggested_asil": "A", "severity": "S1", "exposure": "E3", "controllability": "C1", "rationale": "LED failure warning is informational — driver retains control. Low severity impact, though exposure is regular.", "human_review_required": true },
+      { "id": "REQ-SYS-004", "suggested_asil": "B", "severity": "S2", "exposure": "E4", "controllability": "C2", "rationale": "System-level ASIL-B classification consistent with adaptive headlight systems per ISO 26262 automotive standards.", "human_review_required": true }
+    ]
+  },
+  "audit_log": [
+    { "timestamp": new Date(Date.now() - 25000).toISOString(), "node": "extract_requirements", "input": "Document: LGT-REQ-001", "output": "Extracted 17 requirements", "model": "qwen/qwen-2.5-7b-instruct" },
+    { "timestamp": new Date(Date.now() - 20000).toISOString(), "node": "classify_requirements", "input": "17 requirements", "output": "7 flagged as safety-relevant", "model": "qwen/qwen-2.5-7b-instruct" },
+    { "timestamp": new Date(Date.now() - 15000).toISOString(), "node": "assess_safety_levels", "input": "7 safety requirements", "output": "3 ASIL suggestions generated (all pending human review)", "model": "qwen/qwen-2.5-7b-instruct" },
+    { "timestamp": new Date(Date.now() - 10000).toISOString(), "node": "detect_inconsistencies", "input": "17 requirements", "output": "1 conflict found", "model": "qwen/qwen-2.5-7b-instruct" },
+    { "timestamp": new Date(Date.now() - 5000).toISOString(), "node": "detect_gaps", "input": "17 requirements", "output": "3 gaps found", "model": "qwen/qwen-2.5-7b-instruct" },
+    { "timestamp": new Date(Date.now()).toISOString(), "node": "generate_report", "input": "All analysis complete", "output": "Report generated successfully", "model": "qwen/qwen-2.5-7b-instruct" }
+  ]
+};
+
+if (new URLSearchParams(location.search).get('demo') === '1') {
+  renderReport(SAMPLE);
+}
+</script>
+</body>
+</html>

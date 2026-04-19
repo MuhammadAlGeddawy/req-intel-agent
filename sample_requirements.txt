@@ -1,0 +1,33 @@
+# Document: LGT-REQ-001 | Version: 1.0 | Classification: Internal
+
+## System-Level Requirements
+
+REQ-SYS-001: The adaptive headlight system shall adjust beam direction within 50ms of steering input detection.
+REQ-SYS-002: The lighting control unit shall remain operational between -40°C and 125°C ambient temperature.
+REQ-SYS-003: The system shall comply with ECE Regulation 123 for adaptive front lighting systems.
+REQ-SYS-004: The headlight system shall achieve ASIL-B functional safety classification.
+
+## Hardware Requirements
+
+REQ-HW-001: The LED driver circuit shall supply a minimum of 1000 lumens per headlight unit.
+REQ-HW-002: The actuator motor shall achieve beam adjustment with a positional accuracy of ±0.1 degrees.
+REQ-HW-003: The hardware components shall operate within a voltage range of 9V to 16V DC.
+REQ-HW-004: The temperature sensor shall have a measurement accuracy of ±2°C across the full operating range.
+
+## Software Requirements
+
+REQ-SW-001: The beam control algorithm shall process steering angle sensor data at a minimum frequency of 100Hz.
+REQ-SW-002: The software shall implement a watchdog timer with a timeout period of 10ms.
+REQ-SW-003: The firmware shall log all fault events to non-volatile memory within 5ms of detection.
+REQ-SW-004: The control software shall operate within 8°C to 120°C — NOTE: inconsistent with REQ-SYS-002.
+
+## Safety Requirements
+
+REQ-SAF-001: In case of actuator failure, the system shall default to a fixed straight-ahead beam position within 100ms.
+REQ-SAF-002: The system shall detect LED failure and activate a driver warning within 2 seconds.
+REQ-SAF-003: All safety-relevant software components shall have 100% MC/DC coverage in testing.
+
+## Test Requirements
+
+REQ-TST-001: The beam adjustment latency shall be verified under simulated steering inputs at -20°C, 25°C, and 85°C.
+REQ-TST-002: Voltage tolerance testing shall be performed at 9V, 12V, and 16V input levels.
