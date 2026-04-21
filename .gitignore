@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment and secrets
+.env
+*.env
+config/.env
+
+# Databases and runtime artifacts
+*.db
+*.sqlite
+*.sqlite3
+requirements_agent.db
+
+# IDE / local tooling
+.vscode/
+.sixth/
+
+# OS files
+.DS_Store
+Thumbs.db

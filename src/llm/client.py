@@ -1,6 +1,7 @@
 import json
 import re
 import os
+from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -19,8 +20,9 @@ from dotenv import load_dotenv
 # Recommended for this agent: qwen/qwen-2.5-7b-instruct
 # (strongest JSON output reliability among free models)
 
-# 1. This looks for a .env file and loads variables into os.environ
-load_dotenv(dotenv_path="../config/.env")
+# 1. Load environment variables from config/.env relative to this file
+ENV_PATH = Path(__file__).resolve().parents[2] / "config" / ".env"
+load_dotenv(dotenv_path=ENV_PATH)
 
 # 2. Get the key from the environment
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")

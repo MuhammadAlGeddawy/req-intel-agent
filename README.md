@@ -18,7 +18,7 @@ req_intel_agent/
 │   │       ├── safety.py
 │   │       └── validator.py  # Gaps/Inconsistencies
 │   ├── llm/
-│   │   ├── client.py         # OpenRouter/Anthropic wrappers
+│   │   ├── client.py         # OpenRouter/Qwen
 │   │   └── prompts.py        # Centralized system prompts (versioned)
 │   ├── utils/
 │   │   ├── parsers.py        # Regex and JSON cleanup
