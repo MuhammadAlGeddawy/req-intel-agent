@@ -14,10 +14,11 @@ This project analyzes requirements documents and produces a structured report co
 - traceability gap detection
 - audit log output
 
-The repository now supports two usage modes:
+The repository supports three usage modes:
 
 1. **CLI mode** — run the sample workflow and save a JSON report locally
 2. **API mode** — submit documents over HTTP and persist analyses to a SQLite database
+3. **Docker mode** — run the API as a containerized service with Docker Compose
 
 ---
 
@@ -30,6 +31,9 @@ The repository now supports two usage modes:
 - SQLite-backed persistence for saved analyses
 - Simple request helper script in `request.py`
 - Local HTML viewer file: `report_viewer.html`
+- Docker and Docker Compose support for containerized deployment
+- Non-root container user for security
+- Healthcheck endpoint for container orchestration
 
 ---
 
@@ -38,7 +42,9 @@ The repository now supports two usage modes:
 ```text
 req_intel_agent/
 ├── config/
-│   └── .env                        # Local environment variables (kept out of git)
+│   ├── .env                        # Local environment variables (kept out of git)
+│   └── .env.example                # Example environment file
+├── data/                           # Persistent volume for SQLite in Docker
 ├── src/
 │   ├── agents/
 │   │   ├── graph.py                # LangGraph orchestration
@@ -65,6 +71,9 @@ req_intel_agent/
 ├── sample.txt
 ├── sample_requirements.txt
 ├── requirements_report.json        # Generated sample report
+├── dockerfile                      # Docker image definition
+├── docker-compose.yaml             # Docker Compose orchestration
+├── .dockerignore                   # Docker build exclusions
 └── README.md
 ```
 
@@ -92,9 +101,10 @@ Typical outputs include:
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.10+ (for local development)
 - OpenRouter API key or compatible LLM configuration expected by the project
 - Internet access for model calls if using hosted LLMs
+- Docker & Docker Compose (optional, for containerized deployment)
 
 Python dependencies are listed in `requirements.txt`:
 
@@ -112,13 +122,19 @@ Python dependencies are listed in `requirements.txt`:
 
 ## Setup
 
+### Local Development
+
 From the `req_intel_agent` directory:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Create `config/.env` with your local settings. At minimum, configure the API key your LLM client expects.
+Create `config/.env` with your local settings. At minimum, configure the API key your LLM client expects. You can copy the example file:
+
+```bash
+cp config/.env.example config/.env
+```
 
 Example:
 
@@ -133,6 +149,23 @@ Notes:
 - if `DATABASE_URL` is not set, the app defaults to SQLite at:
   `requirements_agent.db`
 - that SQLite file is typically created in the `req_intel_agent` directory when the API runs from there
+
+### Docker Setup
+
+Ensure Docker and Docker Compose are installed. The provided `docker-compose.yaml` expects a `config/.env` file:
+
+```bash
+cp config/.env.example config/.env
+# Edit config/.env and add your OPENROUTER_API_KEY
+```
+
+Then build and run:
+
+```bash
+docker compose up --build
+```
+
+The service will be available at `http://localhost:8000`.
 
 ---
 
@@ -162,6 +195,8 @@ requirements_report.json
 
 ## Running the API
 
+### Locally
+
 Start the FastAPI app from the `req_intel_agent` directory:
 
 ```bash
@@ -175,6 +210,14 @@ Default local URL:
 ```text
 http://127.0.0.1:8000
 ```
+
+### With Docker Compose
+
+```bash
+docker compose up --build
+```
+
+This mounts a persistent volume (`agent-data`) for the SQLite database and exposes port `8000`.
 
 ### Available Endpoints
 
@@ -232,9 +275,9 @@ Returns a single saved analysis, including:
 ### Using `curl`
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/analyze" ^
-  -H "Content-Type: application/json" ^
-  -d "{\"document\":\"REQ-SYS-001 The system shall...\",\"document_name\":\"example.txt\"}"
+curl -X POST "http://127.0.0.1:8000/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"document":"REQ-SYS-001 The system shall...","document_name":"example.txt"}'
 ```
 
 ### Using the included script
@@ -269,7 +312,7 @@ Stored fields:
 - `report`
 - `created_at`
 
-Default database location:
+Default database location (local development):
 
 ```text
 requirements_agent.db
@@ -279,6 +322,12 @@ Default connection string:
 
 ```text
 sqlite:///./requirements_agent.db
+```
+
+When running with Docker Compose, the database is persisted in a named volume at:
+
+```text
+/app/data/requirements_agent.db
 ```
 
 You can override this by setting `DATABASE_URL` in `config/.env`.
@@ -308,6 +357,7 @@ requirements_report.json
 - `config/.env` should never be committed
 - local cache files and runtime artifacts are ignored by git
 - the local SQLite database file is also ignored by git
+- the Docker image runs as a non-root user (`appuser`) for security
 
 ---
 
@@ -321,6 +371,8 @@ requirements_report.json
 - **Pydantic**
 - **SQLite**
 - **python-dotenv**
+- **Docker**
+- **Docker Compose**
 
 ---
 
@@ -330,6 +382,7 @@ Potential next steps for the project:
 
 - add Swagger/OpenAPI usage examples to the README
 - add automated tests for API routes and DB persistence
-- add Docker support
 - add a richer frontend for browsing saved analyses
 - add authentication if the API is exposed beyond local development
+- add CI/CD pipeline for automated testing and image publishing
+
