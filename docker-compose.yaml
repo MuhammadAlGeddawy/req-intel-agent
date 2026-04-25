@@ -1,0 +1,21 @@
+services:
+  agent-service:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - config/.env
+    volumes:
+      - agent-data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:////app/data/requirements_agent.db
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  agent-data:

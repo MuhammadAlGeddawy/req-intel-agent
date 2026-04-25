@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 # 1. Load environment variables from config/.env relative to this file
 ENV_PATH = Path(__file__).resolve().parents[2] / "config" / ".env"
-load_dotenv(dotenv_path=ENV_PATH)
+load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 # 2. Get the key from the environment
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -43,7 +43,7 @@ def call_llm(system: str, user: str, max_tokens: int = 1000) -> str:
     try:
         response = client.chat.completions.create(
             model=MODEL,
-            temperature=0.01,
+            temperature=0.05,
             max_tokens=max_tokens,
             messages=[
                 {"role": "system", "content": system},

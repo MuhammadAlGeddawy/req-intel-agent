@@ -443,10 +443,19 @@ function readFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const data = JSON.parse(e.target.result);
+      const raw = JSON.parse(e.target.result);
+      // Handle both JSON formats:
+      // Format A — direct agent output: { metadata, summary, requirements, ... }
+      // Format B — DB-wrapped output:   { id, document_name, report: { ... }, created_at }
+      let data;
+      if (raw.report && typeof raw.report === 'object') {
+        data = { ...raw.report, _db_id: raw.id, _db_doc_name: raw.document_name, _db_created_at: raw.created_at };
+      } else {
+        data = raw;
+      }
       renderReport(data);
-    } catch {
-      alert('Could not parse JSON file. Make sure it is a valid requirements_report.json.');
+    } catch(err) {
+      alert('Could not parse JSON file.\n\n' + err.message);
     }
   };
   reader.readAsText(file);
@@ -471,13 +480,18 @@ function renderReport(d) {
   document.getElementById('topbar-meta').textContent = ts;
 
   // Doc banner
+  const dbId = d._db_id ? `<div class="doc-field">Record ID: <span>#${d._db_id}</span></div>` : '';
+  const dbCreated = d._db_created_at ? `<div class="doc-field">Saved at: <span>${new Date(d._db_created_at).toLocaleString()}</span></div>` : '';
+  const docName = d._db_doc_name || meta.document || 'Requirements Report';
   document.getElementById('doc-banner').innerHTML = `
     <div>
-      <div class="doc-name">${meta.document || 'Requirements Report'}</div>
+      <div class="doc-name">${docName}</div>
       <div class="doc-field">Model: <span>${meta.model_used || 'N/A'}</span></div>
     </div>
     <div class="doc-field">Generated: <span>${ts}</span></div>
     <div class="doc-field">Agent version: <span>${meta.agent_version || '1.0.0'}</span></div>
+    ${dbId}
+    ${dbCreated}
   `;
 
   // Metrics
@@ -687,7 +701,16 @@ const SAMPLE = {
 };
 
 if (new URLSearchParams(location.search).get('demo') === '1') {
-  renderReport(SAMPLE);
+  // Simulate the DB-wrapped format (Format B) so demo matches real output
+  const wrappedSample = {
+    id: 1,
+    document_name: "LGT-REQ-001 — Valeo Lighting System (Demo)",
+    created_at: new Date().toISOString(),
+    report: SAMPLE
+  };
+  const raw = wrappedSample;
+  const data = raw.report ? { ...raw.report, _db_id: raw.id, _db_doc_name: raw.document_name, _db_created_at: raw.created_at } : raw;
+  renderReport(data);
 }
 </script>
 </body>

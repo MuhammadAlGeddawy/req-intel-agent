@@ -1,0 +1,22 @@
+# 1. Security (Crucial!)
+config/.env
+.env
+
+# 2. Local Python Junk
+__pycache__/
+*.pyc
+.venv/
+env/
+
+# 3. Local Data
+requirements_agent.db
+data/
+
+# 4. Version Control
+.git/
+.gitignore
+
+# 5. Output Artifacts
+requirements_report.json
+report_viewer.html
+

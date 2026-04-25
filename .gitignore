@@ -30,3 +30,7 @@ requirements_agent.db
 # OS files
 .DS_Store
 Thumbs.db
+
+# Usage
+response_1776776780244.json
+TODO.md
