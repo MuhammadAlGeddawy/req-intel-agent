@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.0.0] - $(date)
+## [v1.0.0] - 2026-05-04
 
 ### Added
 - De-duplicate domain classification using regex from extractor (LLM safety only)
