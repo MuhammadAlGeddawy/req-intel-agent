@@ -14,6 +14,22 @@ This project analyzes requirements documents and produces a structured report co
 - traceability gap detection
 - audit log output
 
+```
+Document Input
+     ↓
+[Node 1] Extract Requirements     → Parse all REQ-XXX-NNN items
+     ↓
+[Node 2] Classify + Flag Safety   → Domain tagging, safety relevance
+     ↓
+[Node 3] Assess ASIL Levels       → ISO 26262 ASIL suggestions (human review required)
+     ↓
+[Node 4] Detect Inconsistencies   → Cross-discipline conflicts
+     ↓
+[Node 5] Detect Gaps              → Missing traceability links (ASPICE)
+     ↓
+[Node 6] Generate Report          → JSON + console report with audit log
+```
+
 The repository supports three usage modes:
 
 1. **CLI mode** — run the sample workflow and save a JSON report locally

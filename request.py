@@ -9,7 +9,7 @@ payload = {
 }
 
 print("Sending request to Docker agent... (this might take a minute)")
-response = requests.post("http://127.0.0.1:8000/analyze", json=payload, timeout=300)
+response = requests.post("http://127.0.0.1:3001/analyze", json=payload, timeout=300)
 
 # NEW: Check if the request was successful
 if response.status_code == 200:
