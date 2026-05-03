@@ -1,7 +1,7 @@
 {
   "metadata": {
     "document": "LGT-REQ-001 \u2014 Valeo Lighting System Requirements",
-    "generated_at": "2026-04-24T05:51:15.184349",
+    "generated_at": "2026-04-30T12:22:28.067659",
     "model_used": "qwen/qwen-2.5-7b-instruct",
     "agent_version": "1.0.0",
     "human_review_required": true
@@ -89,14 +89,14 @@
       "text": "The software shall implement a watchdog timer with a timeout period of 10ms.",
       "domain": "SOFTWARE",
       "safety_relevant": true,
-      "safety_reason": "Prevents software from entering an unsafe state by resetting it."
+      "safety_reason": "Watchdog timer ensures timely detection of software failures."
     },
     {
       "id": "REQ-SW-003",
       "text": "The firmware shall log all fault events to non-volatile memory within 5ms of detection.",
       "domain": "SOFTWARE",
       "safety_relevant": true,
-      "safety_reason": "Ensures faults are recorded for safety analysis."
+      "safety_reason": "Logging faults ensures traceability and aids in post-failure analysis."
     },
     {
       "id": "REQ-SW-004",
@@ -110,21 +110,21 @@
       "text": "In case of actuator failure, the system shall default to a fixed straight-ahead beam position within 100ms.",
       "domain": "SAFETY",
       "safety_relevant": true,
-      "safety_reason": "Prevents unintended movement of headlights which could cause glare or other hazards."
+      "safety_reason": "Prevents unintended movement of headlights which could cause glare or distraction."
     },
     {
       "id": "REQ-SAF-002",
       "text": "The system shall detect LED failure and activate a driver warning within 2 seconds.",
       "domain": "SAFETY",
       "safety_relevant": true,
-      "safety_reason": "Prevents thermal hazards and alerts the driver to potential issues."
+      "safety_reason": "Prevents potential hazards from failed lighting."
     },
     {
       "id": "REQ-SAF-003",
       "text": "All safety-relevant software components shall have 100% MC/DC coverage in testing.",
       "domain": "SAFETY",
       "safety_relevant": true,
-      "safety_reason": "Ensures comprehensive testing of safety-critical software."
+      "safety_reason": "Ensures thorough testing of critical software components."
     },
     {
       "id": "REQ-TST-001",
@@ -145,67 +145,31 @@
     "disclaimer": "SUGGESTIONS ONLY \u2014 All ASIL assignments require human expert review per ISO 26262",
     "assessments": [
       {
-        "id": "REQ-SYS-003",
-        "suggested_asil": "QM",
-        "severity": "S2",
-        "exposure": "E3",
-        "controllability": "C1",
-        "rationale": "Compliance with ECE regulations does not directly indicate severity, exposure, or controllability.",
-        "human_review_required": true
-      },
-      {
-        "id": "REQ-SYS-004",
-        "suggested_asil": "B",
-        "severity": "S2",
-        "exposure": "E3",
-        "controllability": "C2",
-        "rationale": "ASIL-B classification suggests a medium to high severity event with medium exposure and normal controllability.",
-        "human_review_required": true
-      },
-      {
-        "id": "REQ-SW-002",
-        "suggested_asil": "QM",
-        "severity": "S2",
-        "exposure": "E3",
-        "controllability": "C1",
-        "rationale": "Watchdog timer implementation does not directly indicate severity, exposure, or controllability.",
-        "human_review_required": true
-      },
-      {
-        "id": "REQ-SW-003",
-        "suggested_asil": "QM",
-        "severity": "S2",
-        "exposure": "E3",
-        "controllability": "C1",
-        "rationale": "Logging faults does not directly indicate severity, exposure, or controllability.",
-        "human_review_required": true
-      },
-      {
         "id": "REQ-SAF-001",
         "suggested_asil": "B",
         "severity": "S2",
-        "exposure": "E3",
+        "exposure": "E4",
         "controllability": "C2",
-        "rationale": "Actuator failure leading to unintended movement of headlights poses a severe hazard with medium exposure and normal controllability.",
+        "rationale": "Actuator failure could cause severe glare or distraction, affecting exposure and controllability.",
         "human_review_required": true
       },
       {
         "id": "REQ-SAF-002",
-        "suggested_asil": "QM",
+        "suggested_asil": "C",
         "severity": "S2",
-        "exposure": "E3",
-        "controllability": "C1",
-        "rationale": "LED failure detection and warning does not directly indicate severity, exposure, or controllability.",
+        "exposure": "E4",
+        "controllability": "C3",
+        "rationale": "LED failure could lead to reduced visibility, but the system's ability to warn the driver mitigates controllability.",
         "human_review_required": true
       },
       {
         "id": "REQ-SAF-003",
         "suggested_asil": "QM",
-        "severity": "S2",
-        "exposure": "E3",
-        "controllability": "C1",
-        "rationale": "100% MC/DC coverage does not directly indicate severity, exposure, or controllability.",
-        "human_review_required": true
+        "severity": "S0",
+        "exposure": "E0",
+        "controllability": "C0",
+        "rationale": "This requirement pertains to testing coverage and does not define a hazardous event.",
+        "human_review_required": false
       }
     ]
   },
@@ -214,9 +178,9 @@
       "req_id_1": "REQ-SYS-002",
       "req_id_2": "REQ-SW-004",
       "type": "conflicting_values",
-      "description": "REQ-SYS-002 specifies the lighting control unit should operate between -40\u00b0C and 125\u00b0C, while REQ-SW-004 states that the control software should operate within 8\u00b0C to 120\u00b0C, which is a subset of the hardware temperature range but not consistent with it.",
-      "severity": "LOW",
-      "suggested_action": "Review the temperature range requirements to ensure they align with the overall system design and environmental conditions."
+      "description": "REQ-SYS-002 specifies the lighting control unit should operate between -40\u00b0C and 125\u00b0C, while REQ-SW-004 states that the control software should operate within 8\u00b0C to 120\u00b0C, which is a narrower range and potentially conflicts with the hardware specification.",
+      "severity": "MEDIUM",
+      "suggested_action": "Review the temperature range specifications to ensure they align with the overall system design and environmental conditions."
     }
   ],
   "traceability_gaps": [
@@ -230,42 +194,42 @@
     {
       "gap_type": "missing_acceptance_criterion",
       "affected_req_id": "REQ-SW-004",
-      "description": "No acceptance criterion defined for the temperature range of the control software.",
+      "description": "No acceptance criterion defined for the software operating temperature range.",
       "priority": "MEDIUM",
-      "suggested_action": "Define an acceptance criterion for the temperature range of the control software."
+      "suggested_action": "Define an acceptance criterion for the software operating temperature range, e.g., 'The control software shall function correctly when operating within 8\u00b0C to 120\u00b0C.'"
     }
   ],
   "audit_log": [
     {
-      "timestamp": "2026-04-24T05:50:08.274318",
+      "timestamp": "2026-04-30T12:21:47.318025",
       "node": "extract_requirements_regex",
       "input": "Document: LGT-REQ-001 \u2014 Valeo Lighting System Requirements",
       "output": "Extracted 17 requirements via Regex",
       "model": "qwen/qwen-2.5-7b-instruct"
     },
     {
-      "timestamp": "2026-04-24T05:50:53.573549",
+      "timestamp": "2026-04-30T12:22:06.189933",
       "node": "classify_requirements",
       "input": "17 requirements",
       "output": "7 flagged as safety-relevant",
       "model": "qwen/qwen-2.5-7b-instruct"
     },
     {
-      "timestamp": "2026-04-24T05:51:03.930844",
+      "timestamp": "2026-04-30T12:22:14.164797",
       "node": "assess_safety_levels",
       "input": "7 safety requirements",
-      "output": "7 ASIL suggestions (all pending human review)",
+      "output": "3 ASIL suggestions (all pending human review)",
       "model": "qwen/qwen-2.5-7b-instruct"
     },
     {
-      "timestamp": "2026-04-24T05:51:09.633354",
+      "timestamp": "2026-04-30T12:22:20.933745",
       "node": "detect_inconsistencies",
       "input": "17 requirements",
       "output": "1 conflicts found",
       "model": "qwen/qwen-2.5-7b-instruct"
     },
     {
-      "timestamp": "2026-04-24T05:51:15.183252",
+      "timestamp": "2026-04-30T12:22:28.066587",
       "node": "detect_gaps",
       "input": "17 requirements",
       "output": "2 gaps found",
