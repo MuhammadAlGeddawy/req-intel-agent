@@ -1,7 +1,7 @@
 import requests
 from pathlib import Path
 
-path = Path(r"E:\Muhammad\Projects\Valeo\req_intel_agent\sample_requirements.txt")
+path = Path(__file__).resolve().parent / "sample_requirements.txt"
 
 payload = {
     "document": path.read_text(encoding="utf-8"),

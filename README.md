@@ -181,7 +181,7 @@ Then build and run:
 docker compose up --build
 ```
 
-The service will be available at `http://localhost:8000`.
+The Docker service will be available at `http://localhost:3001`.
 
 ---
 
@@ -233,7 +233,7 @@ http://127.0.0.1:8000
 docker compose up --build
 ```
 
-This mounts a persistent volume (`agent-data`) for the SQLite database and exposes port `8000`.
+This mounts a persistent volume (`agent-data`) for the SQLite database and exposes host port `3001` mapped to container port `8000`.
 
 ### Available Endpoints
 
@@ -304,11 +304,7 @@ The repository includes `request.py`, which reads `sample_requirements.txt` and 
 python request.py
 ```
 
-Note: `request.py` uses the `requests` package. If it is not already installed in your environment, install it manually:
-
-```bash
-pip install requests
-```
+Note: `request.py` uses the `requests` package, which is included in `requirements.txt`.
 
 ---
 
