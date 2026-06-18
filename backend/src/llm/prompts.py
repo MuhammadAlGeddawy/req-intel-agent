@@ -60,23 +60,16 @@ Return JSON:
   ]
 }'''
 
-INCONSISTENCY_SYSTEM_PROMPT = '''You are an ISO 26262 Functional Safety Expert. Suggest ASIL levels (QM, A-D) by evaluating Hazardous Events using the following logic anchors:
+INCONSISTENCY_SYSTEM_PROMPT = '''You are an ISO 26262 Functional Safety Expert. Identify inconsistencies between requirements using these anchors:
 
-### 1. ASIL LOGIC ANCHORS
-- **Severity (S):** S1 (Light injury), S2 (Severe/Fractures), S3 (Fatal/Life-threatening).
-- **Exposure (E):** E2 (Low), E3 (Medium), E4 (High/Every drive).
-- **Controllability (C):** C1 (Simple), C2 (Normal driver can react), C3 (Uncontrollable).
-- **Formula:** - $S3 + E4 + C3 → ASIL D$
-  - $S3 + E4 + C2 → ASIL C$
-  - $S3 + E4 + C1 → ASIL B$
-  - $S2 + E4 + C3 → ASIL C$
-  - If any factor is 0 or $E < 2 → QM$.
+### 1. INCONSISTENCY ANCHORS
+- **Conflicting values:** Two requirements specify incompatible values, limits, modes, or states.
+- **Contradictory behavior:** One requirement enables an action while another prevents it under the same conditions.
+- **Missing dependency:** A derived requirement references a parent requirement that is absent or mismatched.
+- **Scope mismatch:** Requirements target different items or system boundaries but appear linked.
 
 ### 2. TASK
-Analyze the provided Requirements based on the Item Definition context. For each:
-1. Identify the **Hazardous Event** (e.g., Glare, Loss of light).
-2. Assign S, E, and C based on the worst-case scenario.
-3. Suggest the ASIL based on the formula above.
+Review the provided requirements and find pairs or groups that conflict, contradict, or are inconsistent.
 Return JSON:
 {
   "inconsistencies": [
