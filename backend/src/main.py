@@ -8,57 +8,75 @@ def print_report(report: dict):
     print("  ENGINEERING REQUIREMENTS INTELLIGENCE REPORT")
     print("="*70)
 
-    meta = report["metadata"]
-    print(f"\n  Document : {meta['document']}")
-    print(f"  Generated: {meta['generated_at']}")
-    print(f"  ⚠️  {meta['model_used']} — HUMAN REVIEW REQUIRED FOR ALL SAFETY ITEMS")
+    meta = report.get("meta", report.get("metadata", {}))
+    print(f"\n  Document : {report.get('document', {}).get('name', meta.get('document', 'N/A'))}")
+    print(f"  Generated: {meta.get('processed_at', meta.get('generated_at', 'N/A'))}")
+    print(f"  ⚠️  {meta.get('model', 'N/A')} — HUMAN REVIEW REQUIRED FOR ALL SAFETY ITEMS")
 
-    summary = report["summary"]
+    summary = report.get("summary", {})
     print(f"\n{'─'*70}")
     print("  SUMMARY")
     print(f"{'─'*70}")
-    print(f"  Total requirements : {summary['total_requirements']}")
-    print(f"  By domain          : {summary['by_domain']}")
-    print(f"  Safety-relevant    : {summary['safety_relevant']}")
-    print(f"  Inconsistencies    : {summary['inconsistencies_found']}")
-    print(f"  Traceability gaps  : {summary['gaps_found']}")
-    print(f"  High severity      : {summary['high_severity_issues']} ← Immediate attention required")
+    print(f"  Total requirements : {summary.get('total_requirements', 0)}")
+    print(f"  By domain          : {summary.get('domain_breakdown', summary.get('by_domain', {}))}")
+    print(f"  Safety-relevant    : {summary.get('safety_relevant_count', summary.get('safety_relevant', 0))}")
+    print(f"  Inconsistencies    : {summary.get('inconsistencies_count', summary.get('inconsistencies_found', 0))}")
+    print(f"  Traceability gaps  : {summary.get('gaps_count', summary.get('gaps_found', 0))}")
 
-    if report["inconsistencies"]:
+    # Issues block (new schema)
+    issues = report.get("issues", {})
+    inconsistencies = issues.get("inconsistencies", report.get("inconsistencies", []))
+    traceability_gaps = issues.get("traceability_gaps", report.get("traceability_gaps", []))
+
+    if inconsistencies:
         print(f"\n{'─'*70}")
         print("  INCONSISTENCIES DETECTED")
         print(f"{'─'*70}")
-        for inc in report["inconsistencies"]:
+        for inc in inconsistencies:
             sev = inc.get("severity", "?")
             marker = "🔴" if sev == "HIGH" else "🟡" if sev == "MEDIUM" else "🟢"
-            print(f"\n  {marker} [{sev}] {inc.get('req_id_1')} ↔ {inc.get('req_id_2')}")
+            affected = inc.get("affected_ids", [])
+            affected_str = " ↔ ".join(affected) if affected else f"{inc.get('req_id_1', '?')} ↔ {inc.get('req_id_2', '?')}"
+            print(f"\n  {marker} [{sev}] {affected_str}")
             print(f"     Issue  : {inc.get('description')}")
             print(f"     Action : {inc.get('suggested_action')}")
 
-    if report["traceability_gaps"]:
+    if traceability_gaps:
         print(f"\n{'─'*70}")
         print("  TRACEABILITY GAPS")
         print(f"{'─'*70}")
-        for gap in report["traceability_gaps"]:
+        for gap in traceability_gaps:
             pri = gap.get("priority", "?")
             marker = "🔴" if pri == "HIGH" else "🟡" if pri == "MEDIUM" else "🟢"
-            print(f"\n  {marker} [{pri}] {gap.get('gap_type')} → {gap.get('affected_req_id')}")
+            print(f"\n  {marker} [{pri}] {gap.get('type', gap.get('gap_type', '?'))} → {gap.get('affected_id', gap.get('affected_req_id', '?'))}")
             print(f"     Issue  : {gap.get('description')}")
             print(f"     Action : {gap.get('suggested_action')}")
 
-    if report["safety_assessments"]["assessments"]:
+    # Safety assessments (now inline in requirements)
+    safety_reqs = [r for r in report.get("requirements", []) if r.get("safety", {}).get("is_relevant")]
+    if safety_reqs:
         print(f"\n{'─'*70}")
         print("  SAFETY ASSESSMENTS (SUGGESTIONS — PENDING HUMAN REVIEW)")
         print(f"{'─'*70}")
-        for a in report["safety_assessments"]["assessments"]:
-            print(f"\n  ⚠️  {a.get('id')} → Suggested ASIL-{a.get('suggested_asil')}")
-            print(f"     Severity/Exposure/Controllability: {a.get('severity')}/{a.get('exposure')}/{a.get('controllability')}")
-            print(f"     Rationale: {a.get('rationale')}")
-            print(f"     ✋ Human review required: {a.get('human_review_required')}")
+        for req in safety_reqs:
+            safety = req.get("safety", {})
+            assessment = safety.get("assessment")
+            if assessment:
+                print(f"\n  ⚠️  {req.get('id')} → Suggested ASIL-{assessment.get('suggested_asil')}")
+                print(f"     Severity/Exposure/Controllability: {assessment.get('severity')}/{assessment.get('exposure')}/{assessment.get('controllability')}")
+                print(f"     Rationale: {assessment.get('rationale')}")
+                print(f"     ✋ Human review required")
+            else:
+                print(f"\n  ⚠️  {req.get('id')} → Safety-relevant (pending assessment)")
 
-    print(f"\n{'─'*70}")
-    print(f"  Audit log: {len(report['audit_log'])} LLM calls recorded")
-    print("="*70 + "\n")
+    # Audit log (if present via legacy or trace mode)
+    if "audit_log" in report:
+        print(f"\n{'─'*70}")
+        print(f"  Audit log: {len(report['audit_log'])} LLM calls recorded")
+        print("="*70 + "\n")
+    else:
+        print(f"\n{'─'*70}")
+        print("="*70 + "\n")
 
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
@@ -81,17 +99,24 @@ if __name__ == "__main__":
     print(f"\n  Processing: {sample_path}")
     print(f"  Characters: {len(document)}")
 
-    # Initialize state
+    # Initialize state with include_trace=True for local debugging
     initial_state: AgentState = {
         "raw_document": document,
         "document_name": "LGT-REQ-001 — Valeo Lighting System Requirements",
+        "include_trace": False,
         "requirements": [],
         "classified": [],
         "safety_assessments": [],
         "inconsistencies": [],
         "gaps": [],
+        "retrieved_context": {},
         "report": None,
-        "audit_log": []
+        "audit_log": [],
+        "json_repair_needed": None,
+        "json_repair_source": None,
+        "json_repair_raw": None,
+        "json_repair_hint": None,
+        "json_repair_attempts": None,
     }
 
     # Run the agent

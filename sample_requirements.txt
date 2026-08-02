@@ -26,7 +26,7 @@ REQ-SW-004: The control software shall operate within 8°C to 120°C — NOTE: i
 REQ-SAF-001: In case of actuator failure, the system shall default to a fixed straight-ahead beam position within 100ms.
 REQ-SAF-002: The system shall detect LED failure and activate a driver warning within 2 seconds.
 REQ-SAF-003: All safety-relevant software components shall have 100% MC/DC coverage in testing.
-
+REQ-SAF-004: The chassis control system shall ensure 100% diagnostic coverage of the suspension system to prevent severe life-threatening injuries during driver distraction scenarios.
 ## Test Requirements
 
 REQ-TST-001: The beam adjustment latency shall be verified under simulated steering inputs at -20°C, 25°C, and 85°C.
